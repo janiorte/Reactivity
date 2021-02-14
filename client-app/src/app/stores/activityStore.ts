@@ -1,7 +1,7 @@
 import { action, makeObservable, observable, computed, configure, runInAction } from "mobx";
 import { SyntheticEvent } from "react";
 import { createContext } from "react";
-import agent from "../api/agent";
+import agent  from "../api/agent";
 import { IActivity } from "../models/activity";
 
 configure({ enforceActions: 'always' });
