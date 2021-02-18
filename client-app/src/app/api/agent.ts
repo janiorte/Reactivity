@@ -6,7 +6,7 @@ import { IActivity } from '../models/activity';
 axios.defaults.baseURL = 'http://localhost:5000/api';
 
 axios.interceptors.response.use(undefined, error => {
-    if(error.message === 'Network Error' && !error.response) {
+    if (error.message === 'Network Error' && !error.response) {
         toast.error('Network error - make sure API is running!');
     }
     const { status, data, config } = error.response;
@@ -16,9 +16,11 @@ axios.interceptors.response.use(undefined, error => {
     if (status === 400 && config.method === 'get' && data.errors.hasOwnProperty('id')) {
         history.push('/notfound');
     }
-    if (status === 500){
+    if (status === 500) {
         toast.error('Server error - check the terminal for more info!');
     }
+
+    throw error;
 })
 
 const responseBody = (response: AxiosResponse) => response.data;

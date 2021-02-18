@@ -5,9 +5,13 @@ import { createBrowserHistory } from 'history'
 import 'react-toastify/dist/ReactToastify.css';
 import "./app/layout/styles.css";
 import "semantic-ui-css/semantic.min.css";
+import 'react-widgets/dist/css/react-widgets.css';
 import App from "./app/layout/App";
 import reportWebVitals from "./reportWebVitals";
 import ScrollToTop from "./app/layout/ScrollToTop";
+import dateFnsLocalizer from 'react-widgets-date-fns';
+
+new dateFnsLocalizer();
 
 export const history = createBrowserHistory();
 
