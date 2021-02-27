@@ -7,7 +7,7 @@ import { RootStoreContext } from "../../../app/stores/rootStore";
 import { ActivityDetailedChat } from "./ActivityDetailedChat";
 import ActivityDetailedHeader from "./ActivityDetailedHeader";
 import ActivityDetailedInfo from "./ActivityDetailedInfo";
-import { ActivityDetailedSideBar } from "./ActivityDetailedSideBar";
+import ActivityDetailedSideBar from "./ActivityDetailedSideBar";
 
 interface DetailParams {
   id: string;
@@ -37,7 +37,7 @@ const ActivityDetails: React.FC<RouteComponentProps<DetailParams>> = ({
         <ActivityDetailedChat />
       </Grid.Column>
       <Grid.Column width={6}>
-        <ActivityDetailedSideBar />
+        <ActivityDetailedSideBar attendees={activity.attendees} />
       </Grid.Column>
     </Grid>
   );
