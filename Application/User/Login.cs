@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace Application.User
 {
@@ -45,7 +46,10 @@ namespace Application.User
                 var user = await UserManager.FindByEmailAsync(request.Email);
 
                 if (user == null)
-                    throw new RestException(System.Net.HttpStatusCode.Unauthorized);
+                    throw new RestException(HttpStatusCode.Unauthorized);
+
+                if (!user.EmailConfirmed)
+                    throw new RestException(HttpStatusCode.BadRequest, new { Email = "Email is not confirmed" });
 
                 var result = await SignInManager.CheckPasswordSignInAsync(user, request.Password, false);
 

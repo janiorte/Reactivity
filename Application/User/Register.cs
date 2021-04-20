@@ -5,10 +5,11 @@ using Domain;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 using System;
-using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,12 +17,13 @@ namespace Application.User
 {
     public class Register
     {
-        public class Command : IRequest<User>
+        public class Command : IRequest
         {
             public string DisplayName { get; set; }
             public string Username { get; set; }
             public string Email { get; set; }
             public string Password { get; set; }
+            public string Origin { get; set; }
         }
 
         public class CommandValidator : AbstractValidator<Command>
@@ -35,21 +37,21 @@ namespace Application.User
             }
         }
 
-        public class Handler : IRequestHandler<Command, User>
+        public class Handler : IRequestHandler<Command>
         {
             private readonly DataContext Context;
             private readonly UserManager<AppUser> UserManager;
-            private readonly IJwtGenerator JwtGenerator;
+            private readonly IEmailSender EmailSender;
 
             public Handler(DataContext context, UserManager<AppUser> userManager,
-                IJwtGenerator jwtGenerator)
+                IEmailSender emailSender)
             {
                 Context = context;
                 UserManager = userManager;
-                JwtGenerator = jwtGenerator;
+                EmailSender = emailSender;
             }
 
-            public async Task<User> Handle(Command request, CancellationToken cancellationToken)
+            public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
                 if (await Context.Users.AnyAsync(x => x.Email == request.Email))
                     throw new RestException(System.Net.HttpStatusCode.BadRequest, new { Email = "Email already exists" });
@@ -64,17 +66,21 @@ namespace Application.User
                     UserName = request.Username
                 };
 
-                var refreshToken = JwtGenerator.GenerateRefreshToken();
-                user.RefreshTokens.Add(refreshToken);
-
                 var result = await UserManager.CreateAsync(user, request.Password);
 
-                if (result.Succeeded)
-                {
-                    return new User(user, JwtGenerator, refreshToken.Token);
-                }
+                if (!result.Succeeded) throw new Exception("Problem creating user");
 
-                throw new Exception("Problem creating user");
+                var token = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+                token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+
+                var verifyUrl = $"{request.Origin}/user/verifyEmail?token={token}&email={request.Email}";
+
+                var message = $"<p>Please click the below link to verify your email address:</p>" +
+                    $"<p><a href='{verifyUrl}'>{verifyUrl}</a></p>";
+
+                await EmailSender.SendEmailAsync(request.Email, "Please verify email address", message);
+
+                return Unit.Value;
             }
         }
     }
